@@ -31,7 +31,8 @@ if __name__ == "__main__":
   #xmin, xmax = -1.2, 3.5
   xmin, xmax = -0.4, 4.5
 
-  comb = [ 0.94, 0.15, 0.14 ]
+  comb = [ 0.98, 0.15, 0.14 ]
+  #comb = [ 1.00, 0.15, 0.14 ] # Asimov
 
   can = R.TCanvas('can','can',800,1000)
   can.cd()
@@ -60,6 +61,7 @@ if __name__ == "__main__":
     ipoi = npoi-ipoi-1
 
     POIName = poi.GetName().replace('mu_','')
+    POIName = POIName.replace('QQH_BSM','JET_BSM')
     mean = poi.getVal()
     errHi = abs(poi.getErrorHi())
     errLo = abs(poi.getErrorLo())

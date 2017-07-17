@@ -9,6 +9,7 @@ R.gStyle.SetOptStat(0)
 R.gROOT.SetBatch(R.kTRUE)
 
 POIstrs = yaml.safe_load(open('replacements.yml'))
+errors = yaml.safe_load(open('errors.yml'))
 
 # ---------------------------------------------------------------------
 def iterate( args ):
@@ -29,12 +30,11 @@ if __name__ == "__main__":
   ws = tf.Get('combWS')
   mc = ws.obj('ModelConfig')
 
+  paves = []
   pois = mc.GetParametersOfInterest()
 
-  #xmin, xmax = -10.0, 11.0
-  #xmin, xmax = -4, 6
-  xmin, xmax = -5.5, 7.2
-  xmin, xmax = -6.0, 11.0
+  xmin, xmax = -0.6, 2.8
+  #xmin, xmax = -0.1, 2.1 # expected
 
   can = R.TCanvas('can','can',900,1000)
   can.cd()
@@ -43,6 +43,7 @@ if __name__ == "__main__":
   tg = R.TGraphAsymmErrors()
 
   color = R.kBlue
+  #color = R.kBlack
   tg.SetLineWidth(2)
   tg.SetMarkerStyle(20)
   tg.SetMarkerSize(1.2)
@@ -56,19 +57,21 @@ if __name__ == "__main__":
     if 'minus' in poi.GetName(): continue
     npoi += 1
 
-  h = R.TH2F('hist',';Measured XS w.r.t. SM \t', 100, xmin, xmax, npoi, -0.5, npoi-0.5)
+  h = R.TH2F('hist',';Measured #sigma #times BR normalized to SM \t', 100, xmin, xmax, npoi, -0.5, npoi-0.5)
   h.SetTitleSize(0.042, 'X')
 
-  for ipoi, poi in enumerate(iterate(pois)):
+  jpoi = -1
+  for poi in iterate(pois):
     if poi.isConstant(): continue
     if 'minus' in poi.GetName(): continue
-    ipoi = npoi-ipoi-1
+    jpoi += 1
+    ipoi = npoi-jpoi-1
 
     POIName = poi.GetName().replace('mu_','')
     mean = poi.getVal()
     errHi = abs(poi.getErrorHi())
     errLo = abs(poi.getErrorLo())
-    print '%-25s :  %+4.2f  +/-  %+4.2f  %4.2f' % (POIName, mean, errHi, -errLo)
+    print '%45s :  %+4.2f  +/-  %+4.2f  %4.2f' % (POIName, mean, errHi, -errLo)
 
     if POIName in POIstrs: POIName = POIstrs[POIName]
 
@@ -76,13 +79,43 @@ if __name__ == "__main__":
     tg.SetPoint(ipoi, mean, ipoi)
     tg.SetPointError(ipoi, errLo, errHi, 0., 0.)
 
+  h.Draw('HIST')
+
+  jpoi = -1
+  for poi in iterate(pois):
+    if poi.isConstant(): continue
+    if 'minus' in poi.GetName(): continue
+    jpoi += 1
+    ipoi = npoi-jpoi-1
+
+    POIName = poi.GetName().replace('mu_','')
+    if not POIName in errors:
+      continue
+
+    errHI, errLO = errors[POIName]
+    # add in BR uncertainties
+    errHI = sqrt( errHI**2 + 0.0173**2 )
+    errLO = sqrt( errLO**2 + 0.0172**2 )
+
+    ybot, ytop = ipoi-0.5, ipoi+0.5
+    if (ytop == npoi-0.5):
+      ytop = npoi-0.51
+    pave = R.TPave(1.0-errLO, ybot, 1.0+errHI, ytop)
+    pave.SetBorderSize(1)
+    #pave.SetFillStyle(3018)
+    pave.SetFillColor(18)
+    pave.SetLineWidth(0)
+    pave.Draw()
+    paves.append(pave)
+
   tline = R.TLine()
   tline.SetLineWidth(2)
-  tline.SetLineColor(R.kGray)
+  tline.SetLineColor(R.kGray+2)
   tline.SetLineStyle(2)
-
-  h.Draw('HIST')
   tline.DrawLine(1.0, -0.5, 1.0, npoi-0.5)
+
+  h.Draw('AXIS SAME')
+  h.Draw('HIST SAME')
   tg.Draw('PE SAME')
 
   text = R.TLatex()
@@ -92,5 +125,16 @@ if __name__ == "__main__":
   text.DrawLatexNDC(0.56, 0.955, '#bf{ #sqrt{s}=13 TeV, 36.1 fb^{-1} }')
   text.DrawLatexNDC(0.56, 0.920, '#bf{ H #rightarrow #gamma#gamma,  m_{H}=125.09 GeV }')
 
-  can.SaveAs('plots/summary_STXS.pdf')
+  xmod, ymod = 0.0, 0.0
+  pave = R.TPave(0.06-xmod, 0.08-ymod, 0.095-xmod, 0.115-ymod, 0, "NDC")
+  pave.SetBorderSize(1)
+  #pave.SetFillStyle(3018)
+  pave.SetFillColor(18)
+  pave.SetLineWidth(0)
+  pave.Draw()
+  text.SetTextSize(0.025)
+  text.DrawLatexNDC(0.11-xmod, 0.09, '#bf{SM prediction}')
+  #text.DrawLatexNDC(0.10-xmod, 0.0975, 'SM prediction')
+
+  can.SaveAs('plots/summary_STRONG.pdf')
 

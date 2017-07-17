@@ -35,10 +35,12 @@ if __name__ == "__main__":
 
   pois = mc.GetParametersOfInterest()
 
-  xmin, xmax = 0, 2.0
   xmin, xmax = -0.3, 1.6
-  xmin, xmax = 0.25, 1.6 # clipped errors
-  comb = [ 0.94, 0.15, 0.14 ]
+  xmin, xmax = -0.05, 2.0
+  #xmin, xmax = 0.25, 1.6 # clipped errors
+
+  comb = [ 0.98, 0.15, 0.14 ]
+  #comb = [ 1.00, 0.15, 0.14 ] # Asimov
 
   can = R.TCanvas('can','can',800,600)
   can.cd()

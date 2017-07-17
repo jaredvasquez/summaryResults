@@ -65,9 +65,9 @@ for i, poiName1 in enumerate(poiNames):
     #corr = round(corrHist.GetBinContent(io, jo),2)
     corr = corrHist.GetBinContent(io, jo)
     h2.SetBinContent(nPOI-i, j+1, corr)
-    if abs(corr) < 0.005:
-      o2.SetBinContent(nPOI-i, j+1, corr)
-    elif abs(corr) <= 0.60:
+    #if abs(corr) < 0.005:
+    #  o2.SetBinContent(nPOI-i, j+1, corr)
+    if abs(corr) <= 0.60:
       o1.SetBinContent(nPOI-i, j+1, corr)
     elif corr == 1:
       o3.SetBinContent(nPOI-i, j+1, corr)
@@ -94,7 +94,7 @@ can.cd()
 
 can.SetMargin(0.24, 0.14, 0.26, 0.02) # left, right, down, up
 
-#ROOT.gStyle.SetPaintTextFormat('.2f');
+ROOT.gStyle.SetPaintTextFormat('.2f');
 
 h2.GetXaxis().LabelsOption('v')
 h2.GetZaxis().SetTitle('#rho(X,Y)')
